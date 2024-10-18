@@ -765,7 +765,7 @@ class TrinoQuery:
             while not self._columns and not self.finished and not self.cancelled:
                 # Columns are not returned immediately after query is submitted.
                 # Continue fetching data until columns information is available and push fetched rows into buffer.
-                self._result.rows += self.fetch()
+                self._result.rows.extend(self.fetch())
         return self._columns
 
     @property
@@ -820,8 +820,8 @@ class TrinoQuery:
         self._result = TrinoResult(self, rows)
 
         # Execute should block until at least one row is received or query is finished or cancelled
-        while not self.finished and not self.cancelled and len(self._result.rows) == 0:
-            self._result.rows += self.fetch()
+        while not self.finished and not self.cancelled and not self._result.rows:
+            self._result.rows.extend(self.fetch())
         return self._result
 
     def _update_state(self, status):
